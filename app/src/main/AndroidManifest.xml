@@ -29,8 +29,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.poster.PosterActivity"
-            android:exported="false" />
+            android:name=".ui.poster.DetailsActivity"
+            android:exported="false"/>
     </application>
 
 </manifest>

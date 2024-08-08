@@ -34,15 +34,12 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
-    def moxyVersion = '2.2.2'
-
-    implementation libs.moxy
-    implementation libs.moxy.android
-    kapt "com.github.moxy-community:moxy-compiler:$moxyVersion"
-
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
     implementation libs.material

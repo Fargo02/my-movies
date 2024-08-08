@@ -2,8 +2,11 @@ package com.practicum.mymovies.data
 
 import com.practicum.mymovies.data.dto.MoviesSearchRequest
 import com.practicum.mymovies.data.dto.MoviesSearchResponse
+import com.practicum.mymovies.data.dto.movieDetails.MoviesDetailsRequest
+import com.practicum.mymovies.data.dto.movieDetails.MoviesDetailsResponse
 import com.practicum.mymovies.domain.api.MoviesRepository
 import com.practicum.mymovies.domain.models.Movie
+import com.practicum.mymovies.domain.models.MovieDetails
 import com.practicum.mymovies.util.LocalStorage
 import com.practicum.mymovies.util.Resource
 
@@ -21,16 +24,35 @@ class MoviesRepositoryImpl(
             200 -> {
                 val stored = localStorage.getSavedFavorites()
 
-                Resource.Success((response as MoviesSearchResponse).results.map {
-                    Movie(
-                        id = it.id,
-                        resultType = it.resultType,
-                        image = it.image,
-                        title = it.title,
-                        description = it.description,
-                        inFavorite = stored.contains(it.id),
-                    )
-                })
+                with(response as MoviesSearchResponse) {
+                    Resource.Success(results.map {
+                        Movie(
+                            it.id,
+                            it.resultType,
+                            it.image,
+                            it.title,
+                            it.description,
+                            inFavorite = stored.contains(it.id))
+                    })
+                }
+            }
+            else -> {
+                Resource.Error("Ошибка сервера")
+            }
+        }
+    }
+
+    override fun searchMoviesDetails(movieId: String): Resource<MovieDetails> {
+        val response = networkClient.doRequest(MoviesDetailsRequest(movieId))
+        return when (response.resultCode) {
+            -1 -> {
+                Resource.Error("Проверьте подключение к интернету")
+            }
+            200 -> {
+                with(response as MoviesDetailsResponse) {
+                    Resource.Success(MovieDetails(movieId, title, imDbRating, year,
+                        countries, genres, directors, writers, stars, plot))
+                }
             }
             else -> {
                 Resource.Error("Ошибка сервера")
