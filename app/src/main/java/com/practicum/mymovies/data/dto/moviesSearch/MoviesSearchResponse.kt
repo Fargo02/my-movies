@@ -1,4 +1,6 @@
-package com.practicum.mymovies.data.dto
+package com.practicum.mymovies.data.dto.moviesSearch
+
+import com.practicum.mymovies.data.dto.Response
 
 
 data class MoviesSearchResponse(

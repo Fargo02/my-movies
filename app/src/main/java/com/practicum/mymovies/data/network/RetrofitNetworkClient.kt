@@ -4,9 +4,10 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.practicum.mymovies.data.NetworkClient
-import com.practicum.mymovies.data.dto.MoviesSearchRequest
+import com.practicum.mymovies.data.dto.moviesSearch.MoviesSearchRequest
 import com.practicum.mymovies.data.dto.Response
 import com.practicum.mymovies.data.dto.movieDetails.MoviesDetailsRequest
+import com.practicum.mymovies.data.dto.moviesCast.MoviesFullCastRequest
 
 class RetrofitNetworkClient(
     private val imdbService: IMDbApiService,
@@ -29,6 +30,15 @@ class RetrofitNetworkClient(
             }
             is MoviesDetailsRequest -> {
                 val response = imdbService.getMovieDetails(dto.movieId).execute()
+                val body = response.body()
+                return if (body != null) {
+                    body.apply { resultCode = response.code() }
+                } else {
+                    Response().apply { resultCode = response.code() }
+                }
+            }
+            is MoviesFullCastRequest -> {
+                val response = imdbService.getFullCast(dto.movieId).execute()
                 val body = response.body()
                 return if (body != null) {
                     body.apply { resultCode = response.code() }

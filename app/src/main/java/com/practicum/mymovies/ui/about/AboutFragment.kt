@@ -1,34 +1,31 @@
-package com.practicum.mymovies.ui.poster
+package com.practicum.mymovies.ui.about
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
+import com.practicum.mymovies.R
+import com.practicum.mymovies.core.navigation.Router
 import com.practicum.mymovies.databinding.FragmentAboutBinding
 import com.practicum.mymovies.domain.models.MovieDetails
-import com.practicum.mymovies.ui.poster.about.AboutViewModel
-import com.practicum.mymovies.ui.poster.models.AboutState
+import com.practicum.mymovies.presentation.poster.about.AboutViewModel
+import com.practicum.mymovies.presentation.poster.models.AboutState
+import com.practicum.mymovies.ui.cast.MoviesCastFragment
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
 class AboutFragment : Fragment() {
 
-    companion object {
-        private const val MOVIE_ID = "movie_id"
+    private lateinit var binding: FragmentAboutBinding
 
-        fun newInstance(movieId: String) = AboutFragment().apply {
-            arguments = Bundle().apply {
-                putString(MOVIE_ID, movieId)
-            }
-        }
-    }
+    private val router : Router by inject()
 
     private val aboutViewModel: AboutViewModel by viewModel {
         parametersOf(requireArguments().getString(MOVIE_ID))
     }
-
-    private lateinit var binding: FragmentAboutBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
@@ -44,6 +41,13 @@ class AboutFragment : Fragment() {
                 is AboutState.Content -> showDetails(it.movie)
                 is AboutState.Error -> showErrorMessage(it.message)
             }
+        }
+        binding.showCastButton.setOnClickListener {
+            router.openFragment(
+                MoviesCastFragment.newInstance(
+                    movieId = requireArguments().getString(MOVIE_ID).orEmpty()
+                )
+            )
         }
     }
 
@@ -69,6 +73,15 @@ class AboutFragment : Fragment() {
             castValue.text = movieDetails.stars
             plot.text = movieDetails.plot
         }
+    }
 
+    companion object {
+        private const val MOVIE_ID = "movie_id"
+
+        fun newInstance(movieId: String) = AboutFragment().apply {
+            arguments = Bundle().apply {
+                putString(MOVIE_ID, movieId)
+            }
+        }
     }
 }

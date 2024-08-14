@@ -1,4 +1,4 @@
-package com.practicum.mymovies.data.dto
+package com.practicum.mymovies.data.dto.moviesSearch
 
 data class MovieDto(
     val id: String,

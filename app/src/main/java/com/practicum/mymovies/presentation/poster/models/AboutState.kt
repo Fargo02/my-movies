@@ -1,4 +1,4 @@
-package com.practicum.mymovies.ui.poster.models
+package com.practicum.mymovies.presentation.poster.models
 
 import com.practicum.mymovies.domain.models.MovieDetails
 

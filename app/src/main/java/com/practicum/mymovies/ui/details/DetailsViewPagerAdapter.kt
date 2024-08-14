@@ -1,9 +1,11 @@
-package com.practicum.mymovies.ui.poster
+package com.practicum.mymovies.ui.details
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.practicum.mymovies.ui.about.AboutFragment
+import com.practicum.mymovies.ui.poster.PosterFragment
 
 class DetailsViewPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle,
                               private val posterUrl: String, private val movieId: String) : FragmentStateAdapter(fragmentManager, lifecycle) {

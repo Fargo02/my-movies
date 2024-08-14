@@ -1,36 +1,47 @@
 package com.practicum.mymovies.ui.movies
 
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.practicum.mymovies.R
+import com.practicum.mymovies.core.navigation.Router
+import com.practicum.mymovies.databinding.FragmentMoviesBinding
 import com.practicum.mymovies.domain.models.Movie
 import com.practicum.mymovies.presentation.movies.MoviesSearchViewModel
-import com.practicum.mymovies.ui.movies.models.MoviesState
-import com.practicum.mymovies.ui.poster.DetailsActivity
+import com.practicum.mymovies.ui.details.DetailsFragment
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.java.KoinJavaComponent.inject
 
-class MoviesActivity : ComponentActivity() {
+class MoviesFragment : Fragment() {
+
+    private lateinit var binding: FragmentMoviesBinding
+
+    private val router: Router by inject()
 
     private val adapter = MoviesAdapter (
         object : MoviesAdapter.MovieClickListener {
             override fun onMovieClick(movie: Movie) {
                 if (clickDebounce()) {
-                    val intent = Intent(this@MoviesActivity, DetailsActivity::class.java)
-                    intent.putExtra("poster", movie.image)
-                    intent.putExtra("id", movie.id)
-                    startActivity(intent)
+                    router.openFragment(
+                        DetailsFragment.newInstance(
+                            movieId = movie.id,
+                            posterUrl = movie.image
+                        )
+                    )
                 }
             }
 
@@ -38,7 +49,7 @@ class MoviesActivity : ComponentActivity() {
                 viewModel.toggleFavorite(movie)
             }
         }
-        )
+    )
 
     private lateinit var queryInput: EditText
     private lateinit var placeholderMessage: TextView
@@ -52,17 +63,22 @@ class MoviesActivity : ComponentActivity() {
 
     private val viewModel by viewModel<MoviesSearchViewModel>()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_movies)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        binding = FragmentMoviesBinding.inflate(inflater, container, false)
+        return binding.root
 
-        placeholderMessage = findViewById(R.id.placeholderMessage)
-        queryInput = findViewById(R.id.queryInput)
-        moviesList = findViewById(R.id.locations)
-        progressBar = findViewById(R.id.progressBar)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        placeholderMessage = binding.placeholderMessage
+        queryInput = binding.queryInput
+        moviesList = binding.locations
+        progressBar = binding.progressBar
 
         moviesList.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         moviesList.adapter = adapter
 
         textWatcher = object : TextWatcher {
@@ -79,22 +95,21 @@ class MoviesActivity : ComponentActivity() {
         }
         textWatcher.let { queryInput.addTextChangedListener(it) }
 
-        viewModel.observeState().observe(this) {
+        viewModel.observeState().observe(viewLifecycleOwner) {
             render(it)
         }
 
-        viewModel.observeShowToast().observe(this) { toast ->
+        viewModel.observeShowToast().observe(viewLifecycleOwner) { toast ->
             showToast(toast)
         }
     }
-
     override fun onDestroy() {
         super.onDestroy()
         textWatcher.let { queryInput.removeTextChangedListener(it) }
     }
 
     private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
     }
 
     private fun render(state: MoviesState) {
@@ -146,5 +161,4 @@ class MoviesActivity : ComponentActivity() {
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
     }
-
 }
