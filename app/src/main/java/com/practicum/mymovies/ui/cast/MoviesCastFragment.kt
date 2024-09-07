@@ -75,7 +75,6 @@ class MoviesCastFragment(): Fragment() {
 
         binding.contentContainer.isVisible = true
 
-        // Меняем привязку стейта к UI-элементам
         binding.movieTitle.text = state.fullTitle
         adapter.items = state.items
 
@@ -86,14 +85,7 @@ class MoviesCastFragment(): Fragment() {
 
         private const val ARGS_MOVIE_ID = "movie_id"
 
-        const val TAG = "MovieCastFragment"
-
-        fun newInstance(movieId: String): Fragment {
-            return MoviesCastFragment().apply {
-                arguments = bundleOf(
-                    ARGS_MOVIE_ID to movieId
-                )
-            }
-        }
+        fun createArgs(movieId: String): Bundle =
+            bundleOf(ARGS_MOVIE_ID to movieId)
     }
 }

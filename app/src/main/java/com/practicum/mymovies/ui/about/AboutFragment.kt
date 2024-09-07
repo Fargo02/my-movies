@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.navigation.fragment.findNavController
 import com.practicum.mymovies.R
 import com.practicum.mymovies.core.navigation.Router
 import com.practicum.mymovies.databinding.FragmentAboutBinding
@@ -20,8 +21,6 @@ import org.koin.core.parameter.parametersOf
 class AboutFragment : Fragment() {
 
     private lateinit var binding: FragmentAboutBinding
-
-    private val router : Router by inject()
 
     private val aboutViewModel: AboutViewModel by viewModel {
         parametersOf(requireArguments().getString(MOVIE_ID))
@@ -43,10 +42,9 @@ class AboutFragment : Fragment() {
             }
         }
         binding.showCastButton.setOnClickListener {
-            router.openFragment(
-                MoviesCastFragment.newInstance(
-                    movieId = requireArguments().getString(MOVIE_ID).orEmpty()
-                )
+            findNavController().navigate(
+                R.id.action_detailsFragment_to_moviesCastFragment,
+                MoviesCastFragment.createArgs(requireArguments().getString(MOVIE_ID).orEmpty())
             )
         }
     }

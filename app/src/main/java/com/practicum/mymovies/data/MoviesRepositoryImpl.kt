@@ -7,10 +7,12 @@ import com.practicum.mymovies.data.dto.movieDetails.MoviesDetailsRequest
 import com.practicum.mymovies.data.dto.movieDetails.MoviesDetailsResponse
 import com.practicum.mymovies.data.dto.moviesCast.MoviesFullCastRequest
 import com.practicum.mymovies.data.dto.moviesCast.MoviesFullCastResponse
+import com.practicum.mymovies.data.dto.nameSearch.NameSearchResponse
 import com.practicum.mymovies.domain.api.MoviesRepository
 import com.practicum.mymovies.domain.models.Movie
 import com.practicum.mymovies.domain.models.MovieCast
 import com.practicum.mymovies.domain.models.MovieDetails
+import com.practicum.mymovies.domain.models.Person
 import com.practicum.mymovies.util.LocalStorage
 import com.practicum.mymovies.util.Resource
 

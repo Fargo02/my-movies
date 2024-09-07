@@ -8,6 +8,7 @@ import com.practicum.mymovies.data.dto.moviesSearch.MoviesSearchRequest
 import com.practicum.mymovies.data.dto.Response
 import com.practicum.mymovies.data.dto.movieDetails.MoviesDetailsRequest
 import com.practicum.mymovies.data.dto.moviesCast.MoviesFullCastRequest
+import com.practicum.mymovies.data.dto.nameSearch.NameSearchRequest
 
 class RetrofitNetworkClient(
     private val imdbService: IMDbApiService,
@@ -39,6 +40,15 @@ class RetrofitNetworkClient(
             }
             is MoviesFullCastRequest -> {
                 val response = imdbService.getFullCast(dto.movieId).execute()
+                val body = response.body()
+                return if (body != null) {
+                    body.apply { resultCode = response.code() }
+                } else {
+                    Response().apply { resultCode = response.code() }
+                }
+            }
+            is NameSearchRequest -> {
+                val response = imdbService.searchName(dto.expression).execute()
                 val body = response.body()
                 return if (body != null) {
                     body.apply { resultCode = response.code() }

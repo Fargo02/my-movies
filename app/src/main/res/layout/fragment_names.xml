@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:background="@color/white"
-    tools:context="com.practicum.mymovies.ui.movies.MoviesFragment">
+    tools:context="com.practicum.mymovies.ui.names.NamesFragment">
 
     <EditText android:id="@+id/queryInput"
         android:layout_width="match_parent"
@@ -26,7 +26,8 @@
             android:indeterminateTint="@color/black"
             android:visibility="gone"/>
 
-        <androidx.recyclerview.widget.RecyclerView android:id="@+id/locations"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/locations"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 

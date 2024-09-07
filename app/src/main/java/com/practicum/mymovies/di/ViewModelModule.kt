@@ -2,6 +2,7 @@ package com.practicum.mymovies.di
 
 import com.practicum.mymovies.presentation.movies.MoviesSearchViewModel
 import com.practicum.mymovies.presentation.cast.MoviesCastViewModel
+import com.practicum.mymovies.presentation.names.NamesSearchViewModel
 import com.practicum.mymovies.presentation.poster.PosterViewModel
 import com.practicum.mymovies.presentation.poster.about.AboutViewModel
 import org.koin.android.ext.koin.androidApplication
@@ -23,5 +24,9 @@ val viewModelModule = module {
 
     viewModel { (movieId: String) ->
         MoviesCastViewModel(movieId, get())
+    }
+
+    viewModel {
+        NamesSearchViewModel(get(), androidApplication())
     }
 }
