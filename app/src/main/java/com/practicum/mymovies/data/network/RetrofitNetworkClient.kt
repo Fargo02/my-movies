@@ -4,8 +4,11 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.practicum.mymovies.data.NetworkClient
-import com.practicum.mymovies.data.dto.MoviesSearchRequest
+import com.practicum.mymovies.data.dto.moviesSearch.MoviesSearchRequest
 import com.practicum.mymovies.data.dto.Response
+import com.practicum.mymovies.data.dto.movieDetails.MoviesDetailsRequest
+import com.practicum.mymovies.data.dto.moviesCast.MoviesFullCastRequest
+import com.practicum.mymovies.data.dto.nameSearch.NameSearchRequest
 
 class RetrofitNetworkClient(
     private val imdbService: IMDbApiService,
@@ -13,19 +16,49 @@ class RetrofitNetworkClient(
 ) : NetworkClient {
 
     override fun doRequest(dto: Any): Response {
-        if (isConnected() == false) {
+        if (!isConnected()) {
             return Response().apply { resultCode = -1 }
         }
-        if (dto !is MoviesSearchRequest) {
-            return Response().apply { resultCode = 400 }
-        }
-
-        val response = imdbService.searchMovies(dto.expression).execute()
-        val body = response.body()
-        return if (body != null) {
-            body.apply { resultCode = response.code() }
-        } else {
-            Response().apply { resultCode = response.code() }
+        return when (dto) {
+            is MoviesSearchRequest -> {
+                val response = imdbService.searchMovies(dto.expression).execute()
+                val body = response.body()
+                return if (body != null) {
+                    body.apply { resultCode = response.code() }
+                } else {
+                    Response().apply { resultCode = response.code() }
+                }
+            }
+            is MoviesDetailsRequest -> {
+                val response = imdbService.getMovieDetails(dto.movieId).execute()
+                val body = response.body()
+                return if (body != null) {
+                    body.apply { resultCode = response.code() }
+                } else {
+                    Response().apply { resultCode = response.code() }
+                }
+            }
+            is MoviesFullCastRequest -> {
+                val response = imdbService.getFullCast(dto.movieId).execute()
+                val body = response.body()
+                return if (body != null) {
+                    body.apply { resultCode = response.code() }
+                } else {
+                    Response().apply { resultCode = response.code() }
+                }
+            }
+            is NameSearchRequest -> {
+                val response = imdbService.searchName(dto.expression).execute()
+                val body = response.body()
+                return if (body != null) {
+                    body.apply { resultCode = response.code() }
+                } else {
+                    Response().apply { resultCode = response.code() }
+                }
+            }
+            else -> {
+                Response().apply { resultCode = 400 }
+            }
         }
     }
 
