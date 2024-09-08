@@ -2,25 +2,25 @@ package com.practicum.mymovies.domain.impl
 
 import com.practicum.mymovies.domain.api.SearchNameInteractor
 import com.practicum.mymovies.domain.api.SearchNameRepository
+import com.practicum.mymovies.domain.models.Person
 import com.practicum.mymovies.util.Resource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.util.concurrent.Executors
 
 class SearchNameInteractorImpl(
     private val repository: SearchNameRepository
 ): SearchNameInteractor {
 
-    private val executer = Executors.newCachedThreadPool()
-
-    override fun searchName(expression: String, consumer: SearchNameInteractor.NameConsumer) {
-        executer.execute{
-            when(val resource = repository.searchName(expression)){
+    override fun searchNames(expression: String): Flow<Pair<List<Person>?, String?>> {
+        return repository.searchName(expression).map { result ->
+            when(result) {
                 is Resource.Success -> {
-                    consumer.consume(resource.data, null)
+                    Pair(result.data, null)
                 }
                 is Resource.Error -> {
-                    consumer.consume(null, resource.message)
+                    Pair(null, result.message)
                 }
-
             }
         }
     }

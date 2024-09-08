@@ -5,30 +5,31 @@ import com.practicum.mymovies.data.dto.nameSearch.NameSearchResponse
 import com.practicum.mymovies.domain.api.SearchNameRepository
 import com.practicum.mymovies.domain.models.Person
 import com.practicum.mymovies.util.Resource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 class SearchNameRepositoryImpl(
     private val networkClient: NetworkClient,
 ): SearchNameRepository {
-    override fun searchName(expression: String): Resource<List<Person>> {
-        val response = networkClient.doRequest(NameSearchRequest(expression))
-        return when (response.resultCode) {
+    override fun searchName(expression: String): Flow<Resource<List<Person>>> = flow{
+        val response = networkClient.doRequestSuspend(NameSearchRequest(expression))
+        when (response.resultCode) {
             -1 -> {
-                Resource.Error("Проверьте подключение к интернету")
+                emit(Resource.Error("Проверьте подключение к интернету"))
             }
             200 -> {
                 with(response as NameSearchResponse) {
-                    Resource.Success(results.map {
-                        Person(
-                            it.id,
-                            it.image,
+                    val data = results.map {
+                        Person(it.id,
                             it.title,
                             it.description,
-                        )
-                    })
+                            it.image)
+                    }
+                    emit(Resource.Success(data))
                 }
             }
             else -> {
-                Resource.Error("Ошибка сервера")
+                emit(Resource.Error("Ошибка сервера"))
             }
         }
     }

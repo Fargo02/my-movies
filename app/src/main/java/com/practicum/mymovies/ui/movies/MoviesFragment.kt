@@ -21,6 +21,8 @@ import com.practicum.mymovies.domain.models.Movie
 import com.practicum.mymovies.presentation.movies.MoviesSearchViewModel
 import com.practicum.mymovies.presentation.movies.MoviesState
 import com.practicum.mymovies.ui.details.DetailsFragment
+import com.practicum.mymovies.ui.root.RootActivity
+import com.practicum.mymovies.util.debounce
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -29,22 +31,7 @@ class MoviesFragment : Fragment() {
 
     private lateinit var binding: FragmentMoviesBinding
 
-    private val adapter = MoviesAdapter (
-        object : MoviesAdapter.MovieClickListener {
-            override fun onMovieClick(movie: Movie) {
-                if (clickDebounce()) {
-                    findNavController().navigate(
-                        R.id.action_moviesFragment_to_detailsFragment,
-                        DetailsFragment.createArgs(movie.id, movie.image)
-                    )
-                }
-            }
-
-            override fun onFavoriteToggleClick(movie: Movie) {
-                viewModel.toggleFavorite(movie)
-            }
-        }
-    )
+    private var adapter: MoviesAdapter? = null
 
     private lateinit var queryInput: EditText
     private lateinit var placeholderMessage: TextView
@@ -53,6 +40,8 @@ class MoviesFragment : Fragment() {
     private lateinit var textWatcher: TextWatcher
 
     private var isClickAllowed = true
+
+    private lateinit var onMovieClickDebounce: (Movie) -> Unit
 
     private val viewModel by viewModel<MoviesSearchViewModel>()
 
@@ -69,6 +58,23 @@ class MoviesFragment : Fragment() {
         queryInput = binding.queryInput
         moviesList = binding.locations
         progressBar = binding.progressBar
+
+        onMovieClickDebounce = debounce<Movie>(CLICK_DEBOUNCE_DELAY, viewLifecycleOwner.lifecycleScope, false) { movie ->
+            findNavController().navigate(R.id.action_moviesFragment_to_detailsFragment,
+                DetailsFragment.createArgs(movie.id, movie.image)) }
+
+        adapter = MoviesAdapter (
+            object : MoviesAdapter.MovieClickListener {
+                override fun onMovieClick(movie: Movie) {
+                    (activity as RootActivity).animateBottomNavigationView()
+                    onMovieClickDebounce(movie)
+                }
+
+                override fun onFavoriteToggleClick(movie: Movie) {
+                    viewModel.toggleFavorite(movie)
+                }
+            }
+        )
 
         moviesList.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
@@ -96,6 +102,13 @@ class MoviesFragment : Fragment() {
             showToast(toast)
         }
     }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        adapter = null
+        moviesList.adapter = null
+        textWatcher?.let { queryInput.removeTextChangedListener(it) } //
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         textWatcher.let { queryInput.removeTextChangedListener(it) }
@@ -137,11 +150,12 @@ class MoviesFragment : Fragment() {
         placeholderMessage.visibility = View.GONE
         progressBar.visibility = View.GONE
 
-        adapter.movies.clear()
-        adapter.movies.addAll(movies)
-        adapter.notifyDataSetChanged()
+        adapter?.movies?.clear()
+        adapter?.movies?.addAll(movies)
+        adapter?.notifyDataSetChanged()
     }
 
+    //избавился от Handler, заменил на coroutines
     private fun clickDebounce(): Boolean {
         val current = isClickAllowed
         if (isClickAllowed) {
@@ -155,6 +169,6 @@ class MoviesFragment : Fragment() {
     }
 
     companion object {
-        private const val CLICK_DEBOUNCE_DELAY = 1000L
+        private const val CLICK_DEBOUNCE_DELAY = 300L
     }
 }

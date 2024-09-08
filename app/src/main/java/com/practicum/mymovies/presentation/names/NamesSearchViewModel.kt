@@ -1,9 +1,6 @@
 package com.practicum.mymovies.presentation.names
 
 import android.app.Application
-import android.os.Handler
-import android.os.Looper
-import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -19,7 +16,7 @@ import kotlinx.coroutines.launch
 
 class NamesSearchViewModel(
     private val searchNameInteractor: SearchNameInteractor,
-    application: Application
+    private val application: Application
 ) : AndroidViewModel(application) {
 
     private val stateLiveData = MutableLiveData<NamesState>()
@@ -43,6 +40,7 @@ class NamesSearchViewModel(
 
     private var searchJob: Job? = null
 
+    //избавился от Handler, заменил на coroutines
     fun searchDebounce(changedText: String) {
         if (latestSearchText == changedText) {
             return
@@ -63,42 +61,34 @@ class NamesSearchViewModel(
         if (newSearchText.isNotEmpty()) {
             renderState(NamesState.Loading)
 
-            searchNameInteractor.searchName(newSearchText, object : SearchNameInteractor.NameConsumer {
-                override fun consume(foundPeople: List<Person>?, errorMessage: String?) {
-                    val people = mutableListOf<Person>()
-                    if (foundPeople != null) {
-                        people.addAll(foundPeople)
+            viewModelScope.launch {
+                searchNameInteractor
+                    .searchNames(newSearchText)
+                    .collect { pair ->
+                        processResult(pair.first, pair.second)
                     }
+            }
+        }
+    }
 
-                    when {
-                        errorMessage != null -> {
-                            renderState(
-                                NamesState.Error(
-                                    message = getApplication<Application>().getString(R.string.something_went_wrong),
-                                )
-                            )
-                            showToast.postValue(errorMessage!!)
-                        }
+    private fun processResult(foundNames: List<Person>?, errorMessage: String?) {
+        val persons = mutableListOf<Person>()
+        if (foundNames != null) {
+            persons.addAll(foundNames)
+        }
 
-                        people.isEmpty() -> {
-                            renderState(
-                                NamesState.Empty(
-                                    message = getApplication<Application>().getString(R.string.nothing_found),
-                                )
-                            )
-                        }
-
-                        else -> {
-                            renderState(
-                                NamesState.Content(
-                                    people = people,
-                                )
-                            )
-                        }
-                    }
-
-                }
-            })
+        when {
+            errorMessage != null -> {
+                renderState(NamesState.Error(message = application.getString(
+                    R.string.something_went_wrong)))
+                showToast.postValue(errorMessage!!)
+            }
+            persons.isEmpty() -> {
+                renderState(NamesState.Empty(message = application.getString(R.string.nothing_found)))
+            }
+            else -> {
+                renderState(NamesState.Content(people = persons))
+            }
         }
     }
 
