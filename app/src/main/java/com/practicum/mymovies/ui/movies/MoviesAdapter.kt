@@ -13,7 +13,7 @@ class MoviesAdapter(private val clickListener: MovieClickListener) :
         MovieViewHolder(parent, clickListener)
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
-        holder.bind(movies.get(position))
+        holder.bind(movies[position])
     }
 
     override fun getItemCount(): Int = movies.size

@@ -22,15 +22,6 @@ class RetrofitNetworkClient(
             return Response().apply { resultCode = -1 }
         }
         return when (dto) {
-            is MoviesSearchRequest -> {
-                val response = imdbService.searchMovies(dto.expression).execute()
-                val body = response.body()
-                return if (body != null) {
-                    body.apply { resultCode = response.code() }
-                } else {
-                    Response().apply { resultCode = response.code() }
-                }
-            }
             is MoviesDetailsRequest -> {
                 val response = imdbService.getMovieDetails(dto.movieId).execute()
                 val body = response.body()
@@ -64,6 +55,16 @@ class RetrofitNetworkClient(
                 return withContext(Dispatchers.IO) {
                     try {
                         val response = imdbService.searchName(dto.expression)
+                        response.apply { resultCode = 200 }
+                    } catch (e: Throwable) {
+                        Response().apply { resultCode = 500 }
+                    }
+                }
+            }
+            is MoviesSearchRequest -> {
+                return withContext(Dispatchers.IO) {
+                    try {
+                        val response = imdbService.searchMovies(dto.expression)
                         response.apply { resultCode = 200 }
                     } catch (e: Throwable) {
                         Response().apply { resultCode = 500 }

@@ -16,4 +16,6 @@
     <string name="movies">Movies</string>
     <string name="persons">Persons</string>
     <string name="info">Info</string>
+    <string name="nothing_searched_yet">Пока что ничего нет</string>
+    <string name="history">History</string>
 </resources>

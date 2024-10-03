@@ -20,10 +20,12 @@ class SearchNameRepositoryImpl(
             200 -> {
                 with(response as NameSearchResponse) {
                     val data = results.map {
-                        Person(it.id,
-                            it.title,
-                            it.description,
-                            it.image)
+                        Person(
+                            id = it.id,
+                            image = it.image,
+                            title = it.title,
+                            description = it.description
+                        )
                     }
                     emit(Resource.Success(data))
                 }

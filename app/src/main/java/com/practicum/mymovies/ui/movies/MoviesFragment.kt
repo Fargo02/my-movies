@@ -39,8 +39,6 @@ class MoviesFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var textWatcher: TextWatcher
 
-    private var isClickAllowed = true
-
     private lateinit var onMovieClickDebounce: (Movie) -> Unit
 
     private val viewModel by viewModel<MoviesSearchViewModel>()
@@ -48,7 +46,6 @@ class MoviesFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentMoviesBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -61,7 +58,8 @@ class MoviesFragment : Fragment() {
 
         onMovieClickDebounce = debounce<Movie>(CLICK_DEBOUNCE_DELAY, viewLifecycleOwner.lifecycleScope, false) { movie ->
             findNavController().navigate(R.id.action_moviesFragment_to_detailsFragment,
-                DetailsFragment.createArgs(movie.id, movie.image)) }
+                DetailsFragment.createArgs(movie.id, movie.image))
+        }
 
         adapter = MoviesAdapter (
             object : MoviesAdapter.MovieClickListener {
@@ -81,8 +79,7 @@ class MoviesFragment : Fragment() {
         moviesList.adapter = adapter
 
         textWatcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
 
             override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
                 viewModel.searchDebounce(
@@ -90,7 +87,7 @@ class MoviesFragment : Fragment() {
                 )
             }
 
-            override fun afterTextChanged(s: Editable?) {}
+            override fun afterTextChanged(s: Editable?) { }
         }
         textWatcher.let { queryInput.addTextChangedListener(it) }
 
@@ -155,20 +152,7 @@ class MoviesFragment : Fragment() {
         adapter?.notifyDataSetChanged()
     }
 
-    //избавился от Handler, заменил на coroutines
-    private fun clickDebounce(): Boolean {
-        val current = isClickAllowed
-        if (isClickAllowed) {
-            isClickAllowed = false
-            lifecycleScope.launch {
-                delay(CLICK_DEBOUNCE_DELAY)
-                isClickAllowed = true
-            }
-        }
-        return current
-    }
-
     companion object {
-        private const val CLICK_DEBOUNCE_DELAY = 300L
+        private const val CLICK_DEBOUNCE_DELAY = 1000L
     }
 }

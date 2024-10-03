@@ -41,4 +41,9 @@
         android:name="com.practicum.mymovies.ui.cast.MoviesCastFragment"
         android:label="fragment_movies_cast"
         tools:layout="@layout/fragment_movies_cast" />
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.practicum.mymovies.ui.history.HistoryFragment"
+        android:label="fragment_history"
+        tools:layout="@layout/fragment_history" />
 </navigation>

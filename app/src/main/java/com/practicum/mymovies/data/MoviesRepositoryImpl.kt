@@ -1,51 +1,57 @@
 package com.practicum.mymovies.data
 
+import com.practicum.mymovies.data.converters.MovieDbConverter
 import com.practicum.mymovies.data.converters.MoviesCastConverter
+import com.practicum.mymovies.data.db.AppDatabase
 import com.practicum.mymovies.data.dto.moviesSearch.MoviesSearchRequest
 import com.practicum.mymovies.data.dto.moviesSearch.MoviesSearchResponse
 import com.practicum.mymovies.data.dto.movieDetails.MoviesDetailsRequest
 import com.practicum.mymovies.data.dto.movieDetails.MoviesDetailsResponse
 import com.practicum.mymovies.data.dto.moviesCast.MoviesFullCastRequest
 import com.practicum.mymovies.data.dto.moviesCast.MoviesFullCastResponse
-import com.practicum.mymovies.data.dto.nameSearch.NameSearchResponse
+import com.practicum.mymovies.data.dto.moviesSearch.MovieDto
 import com.practicum.mymovies.domain.api.MoviesRepository
 import com.practicum.mymovies.domain.models.Movie
 import com.practicum.mymovies.domain.models.MovieCast
 import com.practicum.mymovies.domain.models.MovieDetails
-import com.practicum.mymovies.domain.models.Person
 import com.practicum.mymovies.util.LocalStorage
 import com.practicum.mymovies.util.Resource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+
 
 class MoviesRepositoryImpl(
     private val networkClient: NetworkClient,
     private val localStorage: LocalStorage,
     private val movieCastConverter: MoviesCastConverter,
+    private val appDatabase: AppDatabase,
+    private val movieDbConvertor: MovieDbConverter,
 ) : MoviesRepository {
 
-    override fun searchMovies(expression: String): Resource<List<Movie>> {
-        val response = networkClient.doRequest(MoviesSearchRequest(expression))
-        return when (response.resultCode) {
-            -1 -> {
-                Resource.Error("Проверьте подключение к интернету")
-            }
+    override fun searchMovies(expression: String): Flow<Resource<List<Movie>>> = flow {
+        val response = networkClient.doRequestSuspend(MoviesSearchRequest(expression))
+        when (response.resultCode) {
+            -1 -> emit(Resource.Error("Проверьте подключение к интернету"))
+
             200 -> {
                 val stored = localStorage.getSavedFavorites()
-
                 with(response as MoviesSearchResponse) {
-                    Resource.Success(results.map {
+                    val data = results.map {
                         Movie(
-                            it.id,
-                            it.resultType,
-                            it.image,
-                            it.title,
-                            it.description,
-                            inFavorite = stored.contains(it.id))
-                    })
+                            id = it.id,
+                            resultType = it.resultType,
+                            image = it.image,
+                            title = it.title,
+                            description = it.description,
+                            inFavorite = stored.contains(it.id),
+                        )
+                    }
+                    saveMovie(results)
+                    emit(Resource.Success(data))
                 }
             }
-            else -> {
-                Resource.Error("Ошибка сервера")
-            }
+
+            else -> emit(Resource.Error("Ошибка сервера"))
         }
     }
 
@@ -90,6 +96,11 @@ class MoviesRepositoryImpl(
 
     override fun removeMovieFromFavorites(movie: Movie) {
         localStorage.removeFromFavorites(movie.id)
+    }
+
+    private suspend fun saveMovie(movies: List<MovieDto>) {
+        val movieEntities = movies.map { movie -> movieDbConvertor.map(movie) }
+        appDatabase.movieDao().insertMovies(movieEntities)
     }
 
 }
